@@ -1,0 +1,287 @@
+#import "@preview/diatypst:0.7.0": *
+
+#show: slides.with(
+  title: "Ponteiros em C", // Required
+  subtitle: "Conceitos, Aritmética, Alocação Dinâmica e Boas Práticas",
+  date: "02.08.2025",
+  authors: ("Gabriela Cota", "Jéssica Pereira", "Lucas Ramos", "Mayara Barbosa", "Rian Carlos"),
+
+  // Optional Styling (for more / explanation see in the typst universe)
+  ratio: 16/9,
+  layout: "medium",
+  title-color: blue.darken(60%),
+  toc: true,
+  first-slide: true,
+  count: "dot"
+)
+
+= Uso de \&(address-of) e \*(dereference).
+
+= Relação entre arrays e ponteiros.
+
+  == A Conexão Fundamental
+
+    Em C, o nome de um array é, na maioria dos contextos, um *ponteiro constante* para o seu primeiro elemento.
+
+    Isto significa que `v` e `&v[0]` são equivalentes e apontam para o mesmo endereço de memória.
+
+    ```c
+    int v[4] = {25, 50, 75, 100};
+
+    // O código abaixo imprimirá o mesmo endereço duas vezes:
+    printf("Endereco do array (v): %p\n", v);
+    printf("Endereco do primeiro elemento (&v[0]): %p\n", &v[0]);
+    ```
+
+  == Acesso: Índice vs. Ponteiro
+
+    A notação de colchetes (`v[i]`) é, na verdade, "açúcar sintático" para a aritmética de ponteiros.
+
+    A expressão `v[i]` é internamente convertida para `*(v + i)`.
+
+    ```c
+    // As duas formas de acesso produzem o mesmo resultado.
+    for (int i = 0; i < 4; i++) {
+        printf(
+          "Acesso por indice v[%d] = %d | "
+          "Acesso por ponteiro *(v+%d) = %d\n",
+          i, v[i], i, *(v+i)
+        );
+    }
+    ```
+    #pagebreak()
+
+    *Saída:*
+    ```
+    v[0] = 25 | *(v+0) = 25
+    v[1] = 50 | *(v+1) = 50
+    ...
+    ```
+
+  == Aritmética de Ponteiros
+
+    Quando incrementamos um ponteiro, ele não avança 1 byte, mas sim o tamanho do tipo para o qual ele aponta (`sizeof(tipo)`).
+
+    - Se `p` é um `int*` no endereço `0x100`, `p+1` aponta para `0x104` (assumindo `sizeof(int)` de 4 bytes).
+    - Se `p` é um `char*` no endereço `0x100`, `p+1` aponta para `0x101`.
+
+    ```c
+    int *p = v; // p aponta para o endereço de v[0]
+
+    // (p+i) avança o ponteiro para o próximo elemento.
+    // *(p+i) acessa o valor nesse endereço.
+    printf("Endereco: %p | Valor: %d\n", (p+i), *(p+i));
+    ```
+
+  == Navegando e Modificando com Ponteiros
+
+    Podemos percorrer e até modificar os elementos de um array usando apenas um ponteiro.
+
+    ```c
+    // Percorrendo o array
+    int *p;
+    for (p = v; p < v + 4; p++) {
+        printf("Endereco: %p | Valor: %d\n", p, *p);
+    }
+
+    // Modificando valores
+    *v = 13;        // Altera v[0] para 13
+    *(v + 1) = 17;  // Altera v[1] para 17
+    ```
+
+  == Ponto de Atenção
+
+    C *não* impede que um ponteiro acesse memória fora dos limites de um array.
+
+    ```c
+    int v[4];
+    int *p = v;
+
+    // Isso compila, mas é um erro grave!
+    // Estamos escrevendo em uma área de memória que não nos pertence.
+    *(p + 10) = 999; 
+    ```
+    Este é um dos erros mais comuns e perigosos em C, podendo causar falhas de segmentação (*segmentation faults*) ou corrupção de dados.
+
+= Diferença entre char s[] e const char \*.
+
+= Função swap com ponteiros.
+
+= Função que aloca dinamicamente um array com T\*\* (ponteiro para ponteiro).
+
+  == O que é uma Matriz Dinâmica?
+
+    Em C, uma matriz (array 2D) pode ser representada como um "ponteiro para ponteiro", por exemplo `char**`.
+
+    - Diferente de uma matriz estática (`char matriz[5][10]`), suas dimensões (`linhas` e `colunas`) podem ser definidas em *tempo de execução*.
+    - A memória é alocada na *heap*, não na *stack*.
+    - Para isso, usamos `malloc` para solicitar a memória e `free` para liberá-la.
+
+  == A Estrutura: Vetor de Ponteiros
+
+    A ideia central é que uma matriz é um *vetor de ponteiros*, onde cada ponteiro aponta para uma *linha*.
+
+    - `matriz` (`char**`): Ponteiro que aponta para o início de um array de ponteiros.
+    - `matriz[i]` (`char*`): Cada elemento desse array é um ponteiro que aponta para o início de uma linha (um array de `char`).
+    - `matriz[i][j]` (`char`): O caractere na linha `i` e coluna `j`.
+
+  == Alocando a Matriz: Passo a Passo
+
+    A alocação ocorre em duas fases:
+
+      ```c
+      char **inicia_matriz(int linhas, int colunas) {
+          // 1. Aloca um array de ponteiros (um para cada linha).
+          char **matriz = malloc(linhas * sizeof(*matriz)); // ou sizeof(char*)
+          if (matriz == NULL) { /* Tratar erro */ }
+
+          // 2. Para cada linha, aloca um array de chars (as colunas).
+          for (int i = 0; i < linhas; i++) {
+              matriz[i] = malloc(colunas * sizeof(*matriz[i])); // ou sizeof(char)
+              if (matriz[i] == NULL) { /* Tratar erro */ }
+              
+              // Preenche a matriz...
+
+          return matriz;
+      }
+      ```
+
+  == Liberando a Memória: O Processo Inverso
+
+    Para evitar vazamentos de memória, a memória alocada com `malloc` deve ser liberada com `free`.
+
+    O processo é o *inverso* da alocação:
+    - Liberar cada uma das linhas.
+    - Liberar o array de ponteiros.
+
+    ```c
+    void libera_matriz(char **matriz, int linhas) {
+        if (!matriz) return;
+
+        // 1. Libera cada linha (array de colunas).
+        for (int i = 0; i < linhas; i++) {
+            free(matriz[i]);
+        }
+        // 2. Libera o array de ponteiros.
+        free(matriz);
+    }
+    ```
+
+  == Demonstração
+
+    - *Compilação:*
+      ```bash
+      gcc -Wall "alocacao-dinamica-matriz/dyn_aloc_arr.c" -o "alocacao-dinamica-matriz/output/dyn_aloc_arr"
+      ```
+
+    - *Execução:*
+      ```bash
+      ./alocacao-dinamica-matriz/output/dyn_aloc_arr
+      ```
+
+    - *Saída (para 5 linhas e 10 colunas):*
+      ```
+      {L}{L}{L}{L}{L}{L}{L}{L}{L}{L}
+      {L}{L}{L}{L}{L}{L}{L}{L}{L}{L}
+      {L}{L}{L}{L}{L}{L}{L}{L}{L}{L}
+      {L}{L}{L}{L}{L}{L}{L}{L}{L}{L}
+      {L}{L}{L}{L}{L}{L}{L}{L}{L}{L}
+      ```
+
+
+
+= Ponteiro para função: exemplo com `qsort`
+
+  == A função `qsort`
+
+    A função `qsort` da biblioteca padrão (`stdlib.h`) é uma função de ordenação genérica.
+
+    - *Genérica* porque pode ordenar arrays de *qualquer tipo de dado*: inteiros, floats, structs, e até mesmo strings (que são arrays de `char`).
+    - Para conseguir essa flexibilidade, `qsort` não sabe como comparar os elementos do array.
+    - Nós é que precisamos fornecer a lógica de comparação através de um *ponteiro para função*.
+
+    Sua assinatura é:
+    ```c
+    void qsort(
+      void *base,
+      size_t num,
+      size_t size,
+      int (*compar)(const void *, const void *)
+    );
+    ```
+
+  == O problema: como ordenar strings?
+
+    Temos um array de strings que queremos ordenar em ordem alfabética.
+
+    ```c
+    char valores_string[5][10] = {
+      "Jessica", "Lucas", "Rian", "Gabriela", "Mayara"
+    };
+    ```
+
+    A função `strcmp` (de `string.h`) sabe como comparar duas strings. Mas sua assinatura é `int strcmp(const char *, const char *)`.
+
+    A `qsort` espera uma função com a assinatura `int (*compar)(const void *, const void *)`.
+
+    *Não podemos passar `strcmp` diretamente para `qsort` devido à incompatibilidade de tipos dos ponteiros.*
+
+  == A solução: uma função "wrapper"
+
+    Criamos uma função "wrapper" (ou adaptadora) que compatibiliza a `strcmp` com o que a `qsort` espera.
+
+    ```c
+    #include <string.h>
+
+    // Esta função segue a assinatura exigida por qsort.
+    int compara_string(void const *ponteiro_a, void const *ponteiro_b) {
+        // 1. Converte os ponteiros genéricos (void *)
+        //    para o tipo que realmente estamos trabalhando (char *).
+        char const *primeira = (char const *)ponteiro_a;
+        char const *segunda = (char const *)ponteiro_b;
+
+        // 2. Usa strcmp para fazer a comparação real.
+        return strcmp(primeira, segunda);
+    }
+    ```
+
+  == Juntando tudo: a chamada da `qsort`
+
+    Agora, no `main`, podemos chamar a `qsort` e passar nossa função de comparação.
+
+    ```c
+    int main() {
+        char valores_string[5][10] = {"Jessica", "Lucas", "Rian", "Gabriela", "Mayara"};
+
+        // ... código para imprimir o array desordenado ...
+
+        qsort(
+          valores_string, // 1. O array a ser ordenado.
+          5,              // 2. O número de elementos no array.
+          10,             // 3. O tamanho de cada elemento (em bytes).
+          compara_string  // 4. O ponteiro para nossa função de comparação.
+        );
+
+        // ... código para imprimir o array ordenado ...
+        return 0;
+    }
+    ```
+
+  == Demonstração
+
+    - *Compilação:*
+      ```bash
+      gcc -Wall ponteiro-funcao-qsort/func_pntr_qsort.c -o ponteiro-funcao-qsort/output/func_pntr_qsort
+      ```
+
+    - *Execução:*
+      ```bash
+      ./ponteiro-funcao-qsort/output/func_pntr_qsort
+      ```
+
+    - *Saída:*
+      ```
+      Strings desordenadas: Jessica Lucas Rian Gabriela Mayara 
+      Strings ordenadas: Gabriela Jessica Lucas Mayara Rian 
+      ```
+
