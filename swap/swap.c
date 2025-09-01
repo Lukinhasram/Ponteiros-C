@@ -1,4 +1,3 @@
-// Arquivo: exemplo_4_swap.c
 // Objetivo: Demonstrar a criação de uma função 'swap' que troca os valores
 // de duas variáveis usando ponteiros.
 
