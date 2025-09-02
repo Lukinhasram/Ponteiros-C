@@ -12,10 +12,83 @@
   title-color: blue.darken(60%),
   toc: true,
   first-slide: true,
-  count: "dot"
+  count: "number"
 )
 
 = Uso de \&(address-of) e \*(dereference).
+
+  == O que são os operadores \& e \*?
+
+    - `&` (address-of): obtém o endereço de memória de uma variável.
+    - `*` (dereference): acessa ou modifica o valor armazenado no endereço apontado por um ponteiro.
+
+    Essenciais para acesso indireto à memória e para diversas APIs em C.
+
+  == Passo a passo (conceito e uso)
+
+    ```c
+    int numero = 42;                   // 1) variável comum
+    printf("valor: %d\n", numero);
+
+    printf("endereco: %p\n", (void*)&numero); // 2) &numero -> endereço
+
+    int *ponteiro_para_numero;         // 3) declara um ponteiro p/ int
+    ponteiro_para_numero = &numero;    // 4) armazena o endereço de numero
+
+    int lido = *ponteiro_para_numero;  // 5) lê indiretamente (dereference)
+    printf("lido via ponteiro: %d\n", lido);
+
+    *ponteiro_para_numero = 100;       // 6) modifica indiretamente
+    printf("novo valor de numero: %d\n", numero);
+    ```
+
+    - `%p` imprime endereços; converta para `(void*)` por portabilidade.
+    - `*ponteiro` lê/escreve o valor na posição apontada.
+
+  == Visualizando a relação
+
+    ```
+                    [numero]      [ponteiro_para_numero]
+                       42   <-- guarda &numero (um endereço)
+
+    *ponteiro_para_numero   ==  numero
+    &numero                 ==  ponteiro_para_numero (após a atribuição)
+    ```
+
+  == Saída esperada (resumo)
+
+    ```text
+    --- Demonstração dos Operadores & e * ---
+
+    1. Variável 'numero' declarada.
+       - Valor de 'numero': 42
+    2. Usando o operador '&' (address-of).
+       - Endereço de memória de 'numero': 0x...
+    3. Ponteiro 'ponteiro_para_numero' declarado.
+    4. O ponteiro agora armazena o endereço de 'numero'.
+       - Valor do ponteiro: 0x...
+    5. Usando o operador '*' (dereference) para LER o valor.
+       - Valor no endereço apontado: 42
+    6. Usando o operador '*' para MODIFICAR o valor.
+       - Modificando o valor para 100 via ponteiro: *ponteiro_para_numero = 100;
+    7. Verificando o valor da variável 'numero' original.
+       - Novo valor de 'numero': 100
+
+    --- Fim da Demonstração ---
+    ```
+
+  == Demonstração (compilar e executar)
+
+    - Compilação (Linux):
+      ```bash
+      gcc -Wall "Uso de & (address-of)/Uso _de_& (address-of).c" \
+        -o "Uso de & (address-of)/output/uso_address_of"
+      ```
+
+    - Execução:
+      ```bash
+      ./Uso\ de\ \&\ \(address-of\)/output/uso_address_of
+      ```
 
 = Relação entre arrays e ponteiros.
 
@@ -106,6 +179,88 @@
 = Diferença entre char s[] e const char \*.
 
 = Função swap com ponteiros.
+
+  == Por que usar swap com ponteiros?
+
+    - Passagem por referência: a função recebe ENDEREÇOS, não cópias de valores.
+    - Permite modificar, dentro da função, as variáveis originais do chamador.
+    - Padrão essencial para manipular dados em C.
+
+  == Protótipo e funcionamento
+
+    ```c
+    // Recebe dois ponteiros para int e troca os valores apontados
+    void swap(int* ptr_a, int* ptr_b) {
+        printf("  [Dentro da função swap]\n");
+        printf("  - Endereço recebido em ptr_a: %p\n", (void*)ptr_a);
+        printf("  - Endereço recebido em ptr_b: %p\n", (void*)ptr_b);
+
+        int temp = *ptr_a;  // 1) guarda o valor apontado por ptr_a
+        *ptr_a = *ptr_b;    // 2) copia o valor apontado por ptr_b para ptr_a
+        *ptr_b = temp;      // 3) restaura o valor antigo de ptr_a em ptr_b
+
+        printf("  - Troca realizada dentro da função.\n");
+    }
+    ```
+
+    - `ptr_a` e `ptr_b` são `int*`: acessamos os valores com `*` (dereference).
+    - Ao modificar `*ptr_a` e `*ptr_b`, alteramos as variáveis originais.
+
+  == Uso na prática
+
+    ```c
+    int valor1 = 10;
+    int valor2 = 99;
+
+    printf("Valores ANTES da troca:\n");
+    printf(" - valor1 = %d (no endereço %p)\n", valor1, (void*)&valor1);
+    printf(" - valor2 = %d (no endereço %p)\n\n", valor2, (void*)&valor2);
+
+    printf("Chamando swap(&valor1, &valor2) ...\n");
+    swap(&valor1, &valor2);  // passamos os ENDEREÇOS com '&'
+
+    printf("Valores DEPOIS da troca:\n");
+    printf(" - valor1 = %d\n", valor1);
+    printf(" - valor2 = %d\n", valor2);
+    ```
+
+  == Saída esperada
+
+    ```text
+    Valores ANTES da troca:
+     - valor1 = 10 (no endereço 0x...)
+     - valor2 = 99 (no endereço 0x...)
+
+    Chamando a função swap() e passando os ENDEREÇOS de valor1 e valor2...
+      [Dentro da função swap]
+      - Endereço recebido em ptr_a: 0x...
+      - Endereço recebido em ptr_b: 0x...
+      - Troca realizada dentro da função.
+    ...retornamos para a main.
+
+    Valores DEPOIS da troca:
+     - valor1 = 99
+     - valor2 = 10
+    ```
+
+  == Pontos de atenção
+
+    - Passe os ENDEREÇOS com `&` (ex.: `swap(&a, &b)`), não os valores.
+    - Não dereferencie ponteiros nulos; valide entradas se necessário.
+    - Ao imprimir endereços com `%p`, converta para `(void*)` por portabilidade.
+    - Para outros tipos, ajuste a assinatura (ex.: `void swap_double(double*, double*)`).
+
+  == Demonstração (compilar e executar)
+
+    - Compilação (Linux):
+      ```bash
+      gcc -Wall "swap/swap.c" -o "swap/output/swap"
+      ```
+
+    - Execução:
+      ```bash
+      ./swap/output/swap
+      ```
 
 = Função que aloca dinamicamente um array com T\*\* (ponteiro para ponteiro).
 
