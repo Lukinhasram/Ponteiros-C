@@ -171,18 +171,12 @@
       2. Copia a string literal para esse espaço.
     - O array é *independente* da string literal e totalmente *mutável*.
 
-    #pagebreak()
-
     ```c
-    #include <stdio.h>
-    
     int main() {
         char s[] = "Gabriela"; // array mutável na stack
-
         printf("Nome original: %s\n", s);
 
         s[0] = 'g'; // permitido (modifica cópia local)
-
         printf("Nome modificado: %s\n", s);
         printf("Tamanho de s[]: %zu bytes\n", sizeof(s));
 
@@ -465,5 +459,10 @@
       Strings ordenadas: Gabriela Jessica Lucas Mayara Rian 
       ```
 
+= Diagramas
 
+  ==
+  #image("pilha1.png")
 
+  ==
+  #image("pilha2.png")
