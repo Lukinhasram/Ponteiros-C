@@ -167,9 +167,9 @@
 
     - Declaração típica: `char s[] = "Gabriela";`
     - O compilador:
-      1. Aloca espaço na **stack** para o array (`sizeof("Gabriela")+1`).
+      1. Aloca espaço na *stack* para o array (`sizeof("Gabriela")+1`).
       2. Copia a string literal para esse espaço.
-    - O array é **independente** da string literal e totalmente **mutável**.
+    - O array é *independente* da string literal e totalmente *mutável*.
 
     #pagebreak()
 
@@ -199,14 +199,14 @@
     Tamanho de s[]: 9 bytes
     ```
 
-    - O `sizeof(s)` retorna o **tamanho do array** em memória (9 bytes = 8 caracteres + `\0`).
+    - O `sizeof(s)` retorna o *tamanho do array* em memória (9 bytes = 8 caracteres + `\0`).
 
   == `const char *s` — Ponteiro para String Literal Imutável
 
     - Declaração típica: `const char *s = "Gabriela";`
-    - A string literal é armazenada em uma **área somente leitura** do programa.
-    - A variável `s` é apenas um **ponteiro** na stack que aponta para essa área.
-    - Tentar modificar o conteúdo resulta em **erro de compilação** ou **segmentation fault**.
+    - A string literal é armazenada em uma *área somente leitura* do programa.
+    - A variável `s` é apenas um *ponteiro* na stack que aponta para essa área.
+    - Tentar modificar o conteúdo resulta em *erro de compilação* ou *segmentation fault*.
 
     ```c
     int main() {
@@ -230,8 +230,8 @@
     Tamanho do ponteiro s: 8 bytes
     ```
 
-    - O `sizeof(s)` retorna apenas o **tamanho do ponteiro** (4 bytes em 32 bits, 8 bytes em 64 bits).
-    - O conteúdo da string literal é **imutável**.
+    - O `sizeof(s)` retorna apenas o *tamanho do ponteiro* (4 bytes em 32 bits, 8 bytes em 64 bits).
+    - O conteúdo da string literal é *imutável*.
 
 = Função swap com ponteiros.
 
