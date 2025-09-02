@@ -466,3 +466,153 @@
 
   ==
   #image("pilha2.png")
+
+= Três Armadilhas Comuns ao Trabalhar com Ponteiros
+
+  == 1. Ponteiros Não Inicializados
+
+    Um dos problemas mais comuns ocorre quando um ponteiro não recebe um valor inicial. Sem um endereço válido, ele pode conter um valor aleatório (lixo de memória) e apontar para uma área de memória imprevisível.
+
+    - Impacto no Código: Se um programa tenta desreferenciar um ponteiro não inicializado, a execução pode levar a falhas de segmentação, corrupção de dados ou comportamento imprevisível.
+
+    #pagebreak()
+
+    Código com o problema:
+
+    ```c
+    #include <stdio.h>
+
+    int main() {
+        int* p; // Ponteiro não inicializado
+
+        // Tentativa de acessar um endereço desconhecido
+        *p = 10;
+
+        return 0;
+    }
+    ```
+
+    Assim, é indicado que se atribua um valor a um ponteiro tão logo o ponteiro é declarado.
+
+    - Solução: Uma prática fundamental é sempre inicializar os ponteiros. Se ainda não houver um endereço para atribuir, deve-se usar NULL. Isso torna o ponteiro seguro para ser verificado antes de ser usado.
+
+    #pagebreak()
+
+    Código correto:
+
+    ```c
+    #include <stdio.h>
+
+    int main() {
+        int* p = NULL;
+
+        // Verificação de segurança antes de usar
+        if (p != NULL) {
+            *p = 10;
+        }
+
+        return 0;
+    }
+    ```
+
+  == 2. Vazamentos de Memória
+
+    Um vazamento de memória ocorre quando a memória que foi alocada dinamicamente com funções como malloc ou new não é liberada.
+
+    - Impacto no Código: A memória alocada permanece ocupada e inacessível para o programa. Com o tempo, o consumo contínuo pode esgotar os recursos do sistema, levando a lentidão e, eventualmente, a falhas.
+
+    #pagebreak()
+
+    Código com o problema:
+
+    ```c
+    #include <stdio.h>
+    #include <stdlib.h>
+
+    void alocar() {
+        int* dados = (int*)malloc(100 * sizeof(int));
+        // A memória é alocada, mas a função termina e o ponteiro é perdido.
+    }
+
+    int main() {
+        alocar(); // A memória "vaza" aqui
+        return 0;
+    }
+    ```
+
+    - Solução: É essencial garantir que cada alocação de memória tenha uma liberação correspondente, assim cada alocação com malloc ou new precisa ter um free ou delete correspondente.
+
+    Código correto:
+
+    ```c
+    #include <stdio.h>
+    #include <stdlib.h>
+
+    void alocar() {
+        int* dados = (int*)malloc(100 * sizeof(int));
+        if (dados != NULL) {
+            free(dados); // A memória é liberada antes de sair da função
+        }
+    }
+
+    int main() {
+        alocar();
+        return 0;
+    }
+    ```
+
+  == 3. Ponteiros "Pendurados" (Dangling Pointers)
+
+    Essa armadilha acontece quando um ponteiro ainda aponta para um endereço de memória que já foi liberado e não é mais válido.
+
+    - Impacto no Código: Tentar usar um ponteiro pendurado pode causar a corrupção de outros dados ou uma falha de segmentação, pois a área de memória pode já ter sido realocada para outro fim.
+
+    #pagebreak()
+
+    Código com o problema:
+
+    ```c
+    #include <stdio.h>
+    #include <stdlib.h>
+
+    int main() {
+        int* p = (int*)malloc(sizeof(int));
+        *p = 20;
+
+        free(p); // A memória é liberada.
+
+        // 'p' ainda contém o endereço antigo.
+        printf("Valor: %d\n", *p); // Comportamento imprevisível.
+
+        return 0;
+    }
+    ```
+
+    - Solução: Após liberar a memória, o ponteiro deve ser imediatamente definido para NULL. Isso previne que ele seja usado acidentalmente.
+
+    #pagebreak()
+
+    Código correto:
+
+    ```c
+    int main() {
+        int* p = (int*)malloc(sizeof(int));
+        *p = 20;
+
+        free(p);
+        p = NULL; // O ponteiro agora é seguro.
+
+        if (p != NULL) {
+            printf("Valor: %d\n", *p);
+        } else {
+            printf("Ponteiro nulo. Acesso negado.\n");
+        }
+
+        return 0;
+    }
+    ```
+
+  == Referências
+
+    - https://www.ime.usp.br/~pf/algoritmos/aulas/pont.html
+    - https://www.geeksforgeeks.org/c/c-pointers/
