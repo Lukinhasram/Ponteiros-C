@@ -1,4 +1,4 @@
-#import "@preview/diatypst:0.7.0": *
+#import "lib.typ": *
 
 #show: slides.with(
   title: "Ponteiros em C", // Required
@@ -24,7 +24,7 @@
 
     Essenciais para acesso indireto à memória e para diversas APIs em C.
 
-  == Passo a passo (conceito e uso)
+  == Passo a passo
 
     ```c
     int numero = 42;                   // 1) variável comum
@@ -55,11 +55,9 @@
     &numero                 ==  ponteiro_para_numero (após a atribuição)
     ```
 
-  == Saída esperada (resumo)
+  == Saída esperada
 
     ```text
-    --- Demonstração dos Operadores & e * ---
-
     1. Variável 'numero' declarada.
        - Valor de 'numero': 42
     2. Usando o operador '&' (address-of).
@@ -73,22 +71,9 @@
        - Modificando o valor para 100 via ponteiro: *ponteiro_para_numero = 100;
     7. Verificando o valor da variável 'numero' original.
        - Novo valor de 'numero': 100
-
-    --- Fim da Demonstração ---
     ```
 
-  == Demonstração (compilar e executar)
 
-    - Compilação (Linux):
-      ```bash
-      gcc -Wall "Uso de & (address-of)/Uso _de_& (address-of).c" \
-        -o "Uso de & (address-of)/output/uso_address_of"
-      ```
-
-    - Execução:
-      ```bash
-      ./Uso\ de\ \&\ \(address-of\)/output/uso_address_of
-      ```
 
 = Relação entre arrays e ponteiros.
 
@@ -124,8 +109,8 @@
     ```
     #pagebreak()
 
-    *Saída:*
-    ```
+    == Saída Esperada
+    ```text
     v[0] = 25 | *(v+0) = 25
     v[1] = 50 | *(v+1) = 50
     ...
@@ -177,6 +162,121 @@
     Este é um dos erros mais comuns e perigosos em C, podendo causar falhas de segmentação (*segmentation faults*) ou corrupção de dados.
 
 = Diferença entre char s[] e const char \*.
+
+  == A Diferença Fundamental: Mutabilidade e Memória
+
+    A forma como você declara uma string em C muda onde ela é armazenada e se você pode alterá-la.
+
+    - `char s[] = "texto";`
+      - Cria um *array* na *stack*.
+      - O conteúdo de `"texto"` é *copiado* para este array.
+      - O array é *mutável*: você pode alterar seus caracteres.
+
+    - `const char *s = "texto";`
+      - Cria um *ponteiro* que aponta para a string literal `"texto"`.
+      - A string literal é armazenada em uma área de *memória somente leitura*.
+      - O conteúdo é *imutável*: tentar alterar a string causa um erro.
+
+  == Caso 1: `char s[]` (Array Mutável)
+
+    Neste caso, `s` é um array na stack, contendo uma *cópia* da string. A modificação é segura e permitida.
+
+    ```c
+    #include <stdio.h>
+
+    int main() {
+        // 's' é um array na stack, uma cópia de "Gabriela".
+        char s[] = "Gabriela";
+        printf("Original: %s\n", s);
+
+        // Modificar a cópia local é permitido.
+        s[0] = 'g';
+        printf("Modificado: %s\n", s);
+
+        // sizeof(s) retorna o tamanho do array (7 chars + '\0').
+        printf("Tamanho do array: %zu bytes\n", sizeof(s));
+        return 0;
+    }
+    ```
+
+  == Saída Esperada
+
+    A string é modificada com sucesso e o `sizeof` reflete o tamanho total do array.
+
+    ```text
+    Original: Gabriela
+    Modificado: gabriela
+    Tamanho do array: 8 bytes
+    ```
+
+  == Caso 2: `const char *s` (Ponteiro para Constante)
+
+    Aqui, `s` é um ponteiro para uma string literal em memória somente leitura. Tentar modificar o conteúdo resulta em erro.
+
+    ```c
+    #include <stdio.h>
+
+    int main() {
+        // 's' aponta para a string literal em memória somente leitura.
+        const char *s = "Gabriela";
+        printf("Nome: %s\n", s);
+
+        // TENTATIVA ILEGAL DE MODIFICAÇÃO
+        // s[0] = 'g'; // Causa erro de compilação ou falha em execução!
+
+        // sizeof(s) retorna o tamanho do ponteiro, não da string.
+        printf("Tamanho do ponteiro: %zu bytes\n", sizeof(s));
+        return 0;
+    }
+    ```
+
+  == Saída Esperada
+
+    A modificação é ilegal. O `sizeof` retorna o tamanho de um ponteiro no sistema (geralmente 4 ou 8 bytes).
+
+    ```text
+    Nome: Gabriela
+    Tamanho do ponteiro: 8 bytes
+    ```
+
+  == Resumo Visual
+
+    #table(
+      columns: (1fr, 1fr),
+      align: center,
+      [*`char s[] = "abc";`*], [*`const char *s = "abc";`*],
+      [
+        #box(stroke: 1pt, inset: 8pt,
+          align(center)[
+            *Stack*
+            #rect(width: 100%)[
+              `s: | 'a' | 'b' | 'c' | '\0' |`
+            ]
+            Array mutável na stack.
+          ]
+        )
+      ],
+      [
+        #box(stroke: 1pt, inset: 8pt,
+          align(center)[
+            *Stack*
+            #rect(width: 100%)[
+              `s: | endereço |`
+            ]
+            #v(1em)
+            `|` \
+            `v`
+            #v(1em)
+            *Memória Somente Leitura*
+            #rect(width: 100%)[
+              `| 'a' | 'b' | 'c' | '\0' |`
+            ]
+            Ponteiro para dados imutáveis.
+          ]
+        )
+      ]
+    )
+
 
 = Função swap com ponteiros.
 
@@ -250,17 +350,7 @@
     - Ao imprimir endereços com `%p`, converta para `(void*)` por portabilidade.
     - Para outros tipos, ajuste a assinatura (ex.: `void swap_double(double*, double*)`).
 
-  == Demonstração (compilar e executar)
 
-    - Compilação (Linux):
-      ```bash
-      gcc -Wall "swap/swap.c" -o "swap/output/swap"
-      ```
-
-    - Execução:
-      ```bash
-      ./swap/output/swap
-      ```
 
 = Função que aloca dinamicamente um array com T\*\* (ponteiro para ponteiro).
 
@@ -272,9 +362,9 @@
     - A memória é alocada na *heap*, não na *stack*.
     - Para isso, usamos `malloc` para solicitar a memória e `free` para liberá-la.
 
-  == A Estrutura: Vetor de Ponteiros
+  == A Estrutura: Array de Ponteiros
 
-    A ideia central é que uma matriz é um *vetor de ponteiros*, onde cada ponteiro aponta para uma *linha*.
+    A ideia central é que uma matriz é um *array de ponteiros*, onde cada ponteiro aponta para uma *linha*.
 
     - `matriz` (`char**`): Ponteiro que aponta para o início de um array de ponteiros.
     - `matriz[i]` (`char*`): Cada elemento desse array é um ponteiro que aponta para o início de uma linha (um array de `char`).
@@ -322,20 +412,10 @@
     }
     ```
 
-  == Demonstração
-
-    - *Compilação:*
-      ```bash
-      gcc -Wall "alocacao-dinamica-matriz/dyn_aloc_arr.c" -o "alocacao-dinamica-matriz/output/dyn_aloc_arr"
-      ```
-
-    - *Execução:*
-      ```bash
-      ./alocacao-dinamica-matriz/output/dyn_aloc_arr
-      ```
+  == Saída Esperada
 
     - *Saída (para 5 linhas e 10 colunas):*
-      ```
+      ```text
       {L}{L}{L}{L}{L}{L}{L}{L}{L}{L}
       {L}{L}{L}{L}{L}{L}{L}{L}{L}{L}
       {L}{L}{L}{L}{L}{L}{L}{L}{L}{L}
@@ -422,21 +502,13 @@
     }
     ```
 
-  == Demonstração
-
-    - *Compilação:*
-      ```bash
-      gcc -Wall ponteiro-funcao-qsort/func_pntr_qsort.c -o ponteiro-funcao-qsort/output/func_pntr_qsort
-      ```
-
-    - *Execução:*
-      ```bash
-      ./ponteiro-funcao-qsort/output/func_pntr_qsort
-      ```
+  == Saída Esperada
 
     - *Saída:*
-      ```
+      ```text
       Strings desordenadas: Jessica Lucas Rian Gabriela Mayara 
       Strings ordenadas: Gabriela Jessica Lucas Mayara Rian 
       ```
+
+
 
