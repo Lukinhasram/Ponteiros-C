@@ -2,6 +2,17 @@
 
 Este repositório é uma coleção de exemplos práticos e explicações detalhadas sobre o uso de ponteiros na linguagem C. O objetivo é fornecer uma base sólida sobre conceitos fundamentais, desde a manipulação básica de endereços de memória até tópicos mais avançados como alocação dinâmica e ponteiros para funções.
 
+
+## Tópicos Abordados
+
+1.  [Uso dos Operadores `&` e `*`](#1-uso-dos-operadores---address-of-e--dereference)
+2.  [Função `swap` com Ponteiros](#2-função-swap-com-ponteiros)
+3.  [Ponteiros e Arrays](#3-ponteiros-e-arrays)
+4.  [Diferença entre `char s[]` e `const char *`](#4-diferença-entre-char-s-e-const-char-)
+5.  [Alocação Dinâmica de Matrizes](#5-alocação-dinâmica-de-matrizes)
+6.  [Ponteiros para Funções e `qsort`](#6-ponteiros-para-funções-e-qsort)
+
+---
 ## Como Compilar e Executar os Exemplos
 
 A maioria dos exemplos pode ser compilada usando um compilador C padrão como o GCC. Para compilar um arquivo específico, navegue até o diretório correspondente e use o comando:
@@ -18,17 +29,6 @@ Para executar o programa compilado:
 ```
 
 Consulte o `readme.md` de cada diretório para instruções mais detalhadas, se necessário.
-
-## Tópicos Abordados
-
-1.  [Uso dos Operadores `&` e `*`](#1-uso-dos-operadores---address-of-e--dereference)
-2.  [Função `swap` com Ponteiros](#2-função-swap-com-ponteiros)
-3.  [Ponteiros e Arrays](#3-ponteiros-e-arrays)
-4.  [Diferença entre `char s[]` e `const char *`](#4-diferença-entre-char-s-e-const-char-)
-5.  [Alocação Dinâmica de Matrizes](#5-alocação-dinâmica-de-matrizes)
-6.  [Ponteiros para Funções e `qsort`](#6-ponteiros-para-funções-e-qsort)
-
----
 
 ### 1. Uso dos Operadores `&` (Address-Of) e `*` (Dereference)
 
