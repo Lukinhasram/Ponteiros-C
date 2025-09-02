@@ -163,120 +163,75 @@
 
 = Diferença entre char s[] e const char \*.
 
-  == A Diferença Fundamental: Mutabilidade e Memória
+  == `char s[]` — Um Array Mutável na Stack
 
-    A forma como você declara uma string em C muda onde ela é armazenada e se você pode alterá-la.
+    - Declaração típica: `char s[] = "Gabriela";`
+    - O compilador:
+      1. Aloca espaço na **stack** para o array (`sizeof("Gabriela")+1`).
+      2. Copia a string literal para esse espaço.
+    - O array é **independente** da string literal e totalmente **mutável**.
 
-    - `char s[] = "texto";`
-      - Cria um *array* na *stack*.
-      - O conteúdo de `"texto"` é *copiado* para este array.
-      - O array é *mutável*: você pode alterar seus caracteres.
-
-    - `const char *s = "texto";`
-      - Cria um *ponteiro* que aponta para a string literal `"texto"`.
-      - A string literal é armazenada em uma área de *memória somente leitura*.
-      - O conteúdo é *imutável*: tentar alterar a string causa um erro.
-
-  == Caso 1: `char s[]` (Array Mutável)
-
-    Neste caso, `s` é um array na stack, contendo uma *cópia* da string. A modificação é segura e permitida.
+    #pagebreak()
 
     ```c
     #include <stdio.h>
-
+    
     int main() {
-        // 's' é um array na stack, uma cópia de "Gabriela".
-        char s[] = "Gabriela";
-        printf("Original: %s\n", s);
+        char s[] = "Gabriela"; // array mutável na stack
 
-        // Modificar a cópia local é permitido.
-        s[0] = 'g';
-        printf("Modificado: %s\n", s);
+        printf("Nome original: %s\n", s);
 
-        // sizeof(s) retorna o tamanho do array (7 chars + '\0').
-        printf("Tamanho do array: %zu bytes\n", sizeof(s));
+        s[0] = 'g'; // permitido (modifica cópia local)
+
+        printf("Nome modificado: %s\n", s);
+        printf("Tamanho de s[]: %zu bytes\n", sizeof(s));
+
         return 0;
     }
     ```
 
-  == Saída Esperada
+    #pagebreak()
 
-    A string é modificada com sucesso e o `sizeof` reflete o tamanho total do array.
-
+    == Saída Esperada
     ```text
-    Original: Gabriela
-    Modificado: gabriela
-    Tamanho do array: 8 bytes
+    Nome original: Gabriela
+    Nome modificado: gabriela
+    Tamanho de s[]: 9 bytes
     ```
 
-  == Caso 2: `const char *s` (Ponteiro para Constante)
+    - O `sizeof(s)` retorna o **tamanho do array** em memória (9 bytes = 8 caracteres + `\0`).
 
-    Aqui, `s` é um ponteiro para uma string literal em memória somente leitura. Tentar modificar o conteúdo resulta em erro.
+  == `const char *s` — Ponteiro para String Literal Imutável
+
+    - Declaração típica: `const char *s = "Gabriela";`
+    - A string literal é armazenada em uma **área somente leitura** do programa.
+    - A variável `s` é apenas um **ponteiro** na stack que aponta para essa área.
+    - Tentar modificar o conteúdo resulta em **erro de compilação** ou **segmentation fault**.
 
     ```c
-    #include <stdio.h>
-
     int main() {
-        // 's' aponta para a string literal em memória somente leitura.
-        const char *s = "Gabriela";
+        const char *s = "Gabriela"; // ponteiro para literal em memória só-leitura
+
         printf("Nome: %s\n", s);
 
-        // TENTATIVA ILEGAL DE MODIFICAÇÃO
-        // s[0] = 'g'; // Causa erro de compilação ou falha em execução!
+        // s[0] = 'g'; // ERRO! não é permitido modificar literal
 
-        // sizeof(s) retorna o tamanho do ponteiro, não da string.
-        printf("Tamanho do ponteiro: %zu bytes\n", sizeof(s));
+        printf("Tamanho do ponteiro s: %zu bytes\n", sizeof(s));
+
         return 0;
     }
     ```
 
-  == Saída Esperada
+    #pagebreak()
 
-    A modificação é ilegal. O `sizeof` retorna o tamanho de um ponteiro no sistema (geralmente 4 ou 8 bytes).
-
+    == Saída Esperada
     ```text
     Nome: Gabriela
-    Tamanho do ponteiro: 8 bytes
+    Tamanho do ponteiro s: 8 bytes
     ```
 
-  == Resumo Visual
-
-    #table(
-      columns: (1fr, 1fr),
-      align: center,
-      [*`char s[] = "abc";`*], [*`const char *s = "abc";`*],
-      [
-        #box(stroke: 1pt, inset: 8pt,
-          align(center)[
-            *Stack*
-            #rect(width: 100%)[
-              `s: | 'a' | 'b' | 'c' | '\0' |`
-            ]
-            Array mutável na stack.
-          ]
-        )
-      ],
-      [
-        #box(stroke: 1pt, inset: 8pt,
-          align(center)[
-            *Stack*
-            #rect(width: 100%)[
-              `s: | endereço |`
-            ]
-            #v(1em)
-            `|` \
-            `v`
-            #v(1em)
-            *Memória Somente Leitura*
-            #rect(width: 100%)[
-              `| 'a' | 'b' | 'c' | '\0' |`
-            ]
-            Ponteiro para dados imutáveis.
-          ]
-        )
-      ]
-    )
-
+    - O `sizeof(s)` retorna apenas o **tamanho do ponteiro** (4 bytes em 32 bits, 8 bytes em 64 bits).
+    - O conteúdo da string literal é **imutável**.
 
 = Função swap com ponteiros.
 
