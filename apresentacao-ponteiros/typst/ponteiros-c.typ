@@ -462,15 +462,15 @@
 = Diagramas
 
   ==
-  #align(center, image("modelo_memoria.jpeg"))
+  #align(center, image("imagens/modelo_memoria.jpeg"))
   ==
-  #align(center, image("variaveis_globais.jpeg"))
+  #align(center, image("imagens/variaveis_globais.jpeg"))
   ==
-  #align(center, image("variaveis_estatisticas.jpeg"))
+  #align(center, image("imagens/variaveis_estatisticas.jpeg"))
   ==
-  #align(center, image("pilha1.png"))
+  #align(center, image("imagens/pilha1.png"))
   ==
-  #align(center, image("pilha2.png"))
+  #align(center, image("imagens/pilha2.png"))
 
 = Três Armadilhas Comuns ao Trabalhar com Ponteiros
 
